@@ -1,0 +1,138 @@
+clc;
+clear;
+answer = 'Y';
+fprintf('Welcome to flowerman! It is the classic game hangman but in a slightly more family friendly format! Keep in mind, all words are somewhat plant themed!')
+while answer == 'Y' || answer == 'y'
+clc;
+close;
+%Initialize the scene
+my_scene = simpleGameEngine('FlowermanSprites.png', 32,32,7,[255,255,255]);
+%list of words as character arrays
+word1 = 'fertilizer';
+word2 = 'flower petals';
+word3 = 'gardens';
+word4 = 'budding';
+word5 = 'blossom';
+word6 = 'green thumb';
+word7 = 'sunshine';
+word8 = 'carbon dioxide';
+word9 = 'oxygen release';
+word10 = 'seedling';
+%select a random number
+wordI = randi(10);
+%choose a word based on the random number
+if wordI == 1
+    word = word1;
+elseif wordI == 2
+    word = word2;
+elseif  wordI == 3
+    word = word3;
+elseif wordI == 4
+    word = word4;
+elseif wordI == 5
+    word = word5;
+elseif wordI == 6
+    word = word6;
+elseif wordI == 7
+    word = word7;
+elseif wordI == 8
+    word = word8;
+elseif wordI == 9
+    word = word9;
+else
+    word = word10;
+end
+%The flowerpot sits in the first row of the sprite layer. There are
+%multiple blank spaces to accomodate the fact that letters guessed wrong
+%also need displayed (avoids an index out of bounds error)
+spriteLayer1 = [27,27,27,29,27,27,27];
+%empty vector for storing the letters already guessed
+characters = [];
+%The alphabet (the flowerman sprites for the alphabet are in the same order
+%so the index in this character array of a letter is the index of the
+%sprite
+letters = 'abcdefghijklmnopqrstuvwxyz ';
+%adds underscores for each letter (spaces where needed)
+for i=1:length(word)
+   if word(i) == letters(27)
+       spriteLayer1(2,i) = 27;
+   else
+       spriteLayer1(2,i) = 28;
+   end
+   spriteLayer1(3,i) = 27;
+   %Increases the size of spriteLayer1 when the word is longer than 7
+   %characters to avoid index out of bounds
+   if i > 7
+       spriteLayer1(1,i) = 27;
+   end
+end
+%characters is the index representation of the word 
+for i=1:length(word)
+    for j=1:length(letters)
+        if word(i) == letters(j)
+            characters(i) = j;
+        end
+    end
+end
+%draw the initial scene
+drawScene(my_scene, spriteLayer1);
+%initialize variables
+incorrectGuesses = 0;
+correctGuesses = 0;
+over = false;
+turnNumber = 0;
+lettersGuessed = [];
+%main game loop
+while ~over
+    original = true;
+    correct = false;
+    guess = getKeyboardInput(my_scene);
+    %check if letter has been previously guessed
+    turnNumber = turnNumber + 1;
+    for i=1:turnNumber-1
+        if guess == lettersGuessed(i)
+            original = false
+        end
+    end
+    lettersGuessed(turnNumber) = guess;
+    %check if the guess is correct
+    if original == true
+    for i=1:length(word)
+        if guess == word(i)
+            correct = true;
+        end
+    end
+    if correct == false
+       incorrectGuesses = incorrectGuesses + 1;
+       for i=1:length(letters)
+          if guess == letters(i)
+            spriteLayer1(3,incorrectGuesses) = i;
+            spriteLayer1(1,4) = spriteLayer1(1,4) + 1;
+          end
+       end
+    else
+        for i=1:length(word)
+        if guess == word(i)
+            correctGuesses = correctGuesses + 1;
+            spriteLayer1(2, i) = characters(i);
+        end
+        end
+    end
+    end
+    %draw new scene
+    drawScene(my_scene, spriteLayer1);
+    %end game when player won or lost
+    if correctGuesses == length(word(word~=' ')) || incorrectGuesses == 7
+        over = true;
+    end
+end
+if correctGuesses == length(word)
+    answer = input('You have won! Want to play again? (y/n)', 's');
+else
+    answer = input('You lost! Want to play again? (y/n)', 's');
+end
+end
+
+
+
+
